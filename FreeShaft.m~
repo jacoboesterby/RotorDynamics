@@ -25,13 +25,11 @@
 
  clear all;
  close all;
-
- folder = 'Free_disc_disc';
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   DEFINITION OF THE STRUCTURE OF THE MODEL   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- NE=36;         % number of shaft elements (Minimum 14)
+ NE=14;         % number of shaft elements (Minimum 14)
  GL = (NE+1)*4; % number of degree of freedom
  ND=2;          % number of discs
  NM=2;          % number of bearings
@@ -76,14 +74,14 @@
 %%% DISC 1 %%%
  Rd1   = (295/2)/1000;                         % disc radius [m]
  espD1 = 80/1000;                              % disc thickness  [m]
- MasD1 = pi*Rd1^2*espD1*RAl;                 % disc mass [kg]
+ MasD1 = pi*Rd1^2*espD1*RAl*0;                 % disc mass [kg]
  Id1   = 1/4*MasD1*Rd1^2+1/12*MasD1*espD1^2;   % transversal mass moment of inertia of the disc [Kgm^2]
  Ip1   = 1/2*MasD1*Rd1*Rd1;                    % polar mass moment of inertia of the disc [Kgm^2]
  
 %%% Disc 2 %%%
  Rd2   = (295/2)/1000;                         % disc radius [m]
  espD2= 100/1000;                              % disc thickness  [m]
- MasD2 = pi*Rd2^2*espD2*RAl;                 % disc mass [kg]
+ MasD2 = pi*Rd2^2*espD2*RAl*0;                 % disc mass [kg]
  Id2   = 1/4*MasD2*Rd2^2+1/12*MasD2*espD2^2;   % transversal mass moment of inertia of the disc [Kgm^2]
  Ip2   = 1/2*MasD2*Rd2*Rd2;                    % polar mass moment of inertia of the disc [Kgm^2]
  
@@ -351,11 +349,7 @@ end
  disp('Frequency in rad/s:')
  imag(lam(10:4:28))
  disp('Frequency in Hz:')
- eigFreq = imag(lam(10:4:28))./(2*pi)
-
- name = strcat(folder,'/',strcat(folder,'_',sprintf('%d.mat',NE)));
- save(name,'eigFreq');
- return
+ eigFreq = imag(lam(10:4:24))./(2*pi)
 
  % Number of divisions in time for plotting the mode shapes
   nn=99;
