@@ -26,21 +26,29 @@
  clear all;
  close all;
 
- folder = 'Free_disc_disc';
+ folder = 'Free_disc';
+ dataAquisition = 1;
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   DEFINITION OF THE STRUCTURE OF THE MODEL   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- NE=36;         % number of shaft elements (Minimum 14)
+ NE=14;         % number of shaft elements (Minimum 14)
  GL = (NE+1)*4; % number of degree of freedom
  ND=2;          % number of discs
  NM=2;          % number of bearings
+ 
+ penalty = 1.9;
  
  [l,Rext,Rint,nodePos] = DivideShaftElements(NE);
  
  %Disc position
  CD1=(65+40)/1000;            % node - disc 1 
  CD2=(CD1 + 90/1000);         % node - disc 2
+ 
+ %Define span in which discs are positioned
+ CD1pos = [65,105]./1000;
+ CD2pos = [145,245]./1000;
+ 
  
  discNode = MountOnNode([CD1,CD2],nodePos)
  CD1 = discNode(1);
@@ -76,7 +84,7 @@
 %%% DISC 1 %%%
  Rd1   = (295/2)/1000;                         % disc radius [m]
  espD1 = 80/1000;                              % disc thickness  [m]
- MasD1 = pi*Rd1^2*espD1*RAl;                 % disc mass [kg]
+ MasD1 = pi*Rd1^2*espD1*RAl;                   % disc mass [kg]
  Id1   = 1/4*MasD1*Rd1^2+1/12*MasD1*espD1^2;   % transversal mass moment of inertia of the disc [Kgm^2]
  Ip1   = 1/2*MasD1*Rd1*Rd1;                    % polar mass moment of inertia of the disc [Kgm^2]
  
@@ -292,8 +300,8 @@ disp(' ')
 
 a=1; b=8;
 
-for n=1:NE,   
-
+for n=1:NE,
+    nodes = [n,n+1];
   KbeAux= [12      0        0         6*l(n)    -12      0       0         6*l(n)
            0       12       -6*l(n)   0         0        -12     -6*l(n)   0
            0       -6*l(n)  4*l(n)^2  0         0        6*l(n)  2*l(n)^2  0
@@ -302,8 +310,23 @@ for n=1:NE,
            0       -12      6*l(n)    0         0        12      6*l(n)    0
            0       -6*l(n)  2*l(n)^2  0         0        6*l(n)  4*l(n)^2  0
            6*l(n)  0        0         2*l(n)^2  -6*l(n)  0       0         4*l(n)^2];
-
-  Kbe = ((E*II(n))/(l(n)^3))*KbeAux;
+       if ND == 1
+           if all([(nodePos(nodes(1))>=CD2pos(1)), (nodePos(nodes(1))<=CD2pos(2)),(nodePos(nodes(2))>=CD2pos(1)), (nodePos(nodes(2))<=CD2pos(2))])
+               Kbe = ((penalty*E*II(n))/(l(n)^3))*KbeAux;
+               disp('Element inside bearing')
+               
+           else
+               Kbe = ((E*II(n))/(l(n)^3))*KbeAux;
+           end
+       elseif ND == 2
+           if all([(nodePos(nodes(1))>=CD1pos(1)), (nodePos(nodes(1))<=CD2pos(2)),(nodePos(nodes(2))>=CD1pos(1)), (nodePos(nodes(2))<=CD2pos(2))])
+               Kbe = ((penalty*E*II(n))/(l(n)^3))*KbeAux;
+               disp('Element inside bearing')
+               
+           else
+               Kbe = ((E*II(n))/(l(n)^3))*KbeAux;
+           end
+       end
 
   for f=a:b,
    for g=a:b,
@@ -353,9 +376,11 @@ end
  disp('Frequency in Hz:')
  eigFreq = imag(lam(10:4:28))./(2*pi)
 
- name = strcat(folder,'/',strcat(folder,'_',sprintf('%d.mat',NE)));
- save(name,'eigFreq');
- return
+ if dataAquisition == 1
+     name = strcat(folder,'/',strcat(folder,'_',sprintf('%d.mat',NE)));
+     save(name,'eigFreq');
+     return
+ end
 
  % Number of divisions in time for plotting the mode shapes
   nn=99;
